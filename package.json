@@ -1,0 +1,33 @@
+{
+  "name": "captmoose",
+  "version": "0.0.0",
+  "description": "A web-app and IRC bot to create pictures.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-js": "browserify browser/app.js > browser/app.bundle.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/misterhat"
+  },
+  "keywords": [
+    "irc",
+    "colours",
+    "moose"
+  ],
+  "author": "Mister Hat <misterhat144@gmail.com>",
+  "license": "AGPLv3",
+  "dependencies": {
+    "body": "^5.1.0",
+    "flood-fill": "^0.1.1",
+    "irc": "^0.4.1",
+    "irc-colors": "^1.2.1",
+    "mercury": "^14.1.0",
+    "ndarray": "^1.0.18",
+    "nedb": "^1.8.0",
+    "routes": "^2.1.0",
+    "st": "^1.1.0",
+    "xhr": "^2.2.0"
+  }
+}
