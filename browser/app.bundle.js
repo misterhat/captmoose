@@ -60,9 +60,33 @@ function saveMoose(state, form) {
     });
 }
 
+function bucketFill(x, y, replace_color, state) { 
+	if (replace_color === state.colour() || 
+	state.moose.get(y).get(x)() !== replace_color) {
+
+		return;
+	}
+
+	state.moose.get(y).get(x).set(state.colour());
+
+	if (y+1 < def.height) { 
+		bucketFill(x, y+1, replace_color, state); 
+	}
+	if (y-1 > -1) { 
+		bucketFill(x, y-1, replace_color, state); 
+	}
+	if (x-1 > -1) { 
+		bucketFill(x-1, y, replace_color, state);
+	}
+	if (x+1 < def.width) { 
+		bucketFill(x+1, y, replace_color, state);
+	}
+}
+
 function App() {
     var state = hg.state({
         moose: createMoose(),
+		drawTool: hg.value('pencil'),
         colour: hg.value('blue'),
         colours: hg.array(def.colours),
         grid: hg.value(true),
@@ -77,11 +101,26 @@ function App() {
             touchMoose: function (state, data) {
                 var x = Math.floor(data.x / 16),
                     y = Math.floor(data.y / 24);
-
-                state.moose.get(y).get(x).set(state.colour());
+				
+				if (state.drawTool() === 'bucket') {
+					bucketFill(x, y, state.moose.get(y).get(x)(), state);
+				}
+				else {
+					state.moose.get(y).get(x).set(state.colour());
+				}
             },
             changeTool: function (state, tool) {
                 var i, j;
+
+				if (tool === 'bucket') {
+					state.drawTool.set('bucket');
+					return;
+				}
+
+				if (tool === 'pencil') {
+					state.drawTool.set('pencil');
+					return;
+				}
 
                 if (tool === 'clear') {
                     if (!confirm('are you sure you want to kill your moose?')) {
