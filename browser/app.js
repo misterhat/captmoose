@@ -152,7 +152,7 @@ function App() {
                     } else if (tool === 'pencil') {
                         state.drawTool.set('pencil');
                     } else if (tool === 'clear') {
-                        killMoose(moose);
+                        killMoose(state.moose);
                     } else if (tool === 'grid') {
                         state.grid.set(!state.grid());
                     }
