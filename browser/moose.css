@@ -76,7 +76,7 @@ body {
     display: block;
     margin: 24px auto 24px auto;
     outline: 18px solid #b55200;
-    background: url(./transparent.png);
+    background: url(/transparent.png);
 }
 
 .moose-colour {

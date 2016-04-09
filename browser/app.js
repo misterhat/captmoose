@@ -171,7 +171,11 @@ function App() {
             }
 
             if (moose) {
-                state.moose.set(moose);
+                moose.forEach(function (row, i) {
+                    row.forEach(function (cell, j) {
+                        state.moose.get(i).get(j).set(cell);
+                    });
+                });
             }
         });
     }

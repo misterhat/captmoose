@@ -172,11 +172,11 @@ function App() {
             }
 
             if (moose) {
-                console.log(moose);
-
-                state.moose.set(moose);
-
-                console.log(state.moose());
+                moose.forEach(function (row, i) {
+                    row.forEach(function (cell, j) {
+                        state.moose.get(i).get(j).set(cell);
+                    });
+                });
             }
         });
     }
