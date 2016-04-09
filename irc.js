@@ -123,12 +123,12 @@ client.addListener('message', function (from, to, message) {
         return;
     }
 
-    remaining = 25 - Math.round((Date.now() - lastMessage) / 1000);
+    remaining = Math.round((Date.now() - lastMessage) / 1000);
 
     // moose was called to recently
-    if (remaining) {
-        client.say(from, 'please wait another ' + remaining + ' seconds');
-        return;
+    if (remaining < 25) {
+        return client.say(from, 'please wait another ' + (25 - remaining) +
+                          ' seconds');
     }
 
     if (bots) {
