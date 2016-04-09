@@ -54,9 +54,7 @@ function shrinkMoose(moose) {
             if (moose[i][j] !== 'transparent') {
                 if (i < minY) {
                     minY = i;
-                }
-
-                if (i > maxY) {
+                } else if (i > maxY) {
                     maxY = i;
                 }
 
@@ -91,7 +89,7 @@ function formatMoose(moose) {
                 return c.stripColors(' ');
             }
 
-            return c[colour]('█');
+            return c[colour]['bg' + colour]('@');
         });
     });
 }
@@ -125,20 +123,20 @@ client.addListener('message', function (from, to, message) {
         return;
     }
 
-    remaining = Date.now() - lastMessage;
+    remaining = 25 - Math.round((Date.now() - lastMessage) / 1000);
 
     // moose was called to recently
-    if (remaining < 25000) {
-        return client.say(from, 'please wait another ' +
-                          Math.round(remaining / 1000) + ' seconds');
+    if (remaining) {
+        client.say(from, 'please wait another ' + remaining + ' seconds');
+        return;
     }
 
     if (bots) {
-        return client.say(to, 'CaptDeer [NodeJS], create moose pictures at ' +
-                          url);
+        client.say(to, 'CaptDeer [NodeJS], create moose pictures at ' + url);
+        return;
     }
 
-    findMoose(mooseMe[1], function (err, moose) {
+    findMoose(mooseMe[1].trim(), function (err, moose) {
         if (err) {
             client.say(to, c.bold.red('moose parsing error'));
             return console.error(err.stack);

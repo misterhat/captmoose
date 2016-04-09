@@ -9,7 +9,7 @@ var fs = require('fs'),
 var config = require('./config'),
     def = require('./moose-def'),
     db = new Datastore({ filename: './moose.db', autoload: true }),
-    mount = st({ path: __dirname + '/browser', url: '/' }),
+    mount = st({ path: __dirname + '/browser', url: '/', passthrough: true }),
     router = routes(),
     // cache index to avoid fs reads
     indexHtml = fs.readFileSync('./browser/index.html'),
@@ -123,13 +123,17 @@ router.addRoute('/', function (req, res) {
     res.end(indexHtml);
 });
 
+router.addRoute('/edit/:moose', function (req, res) {
+    res.end(indexHtml);
+});
+
 server = http.createServer(function (req, res) {
     var match = router.match(req.url);
 
     if (match) {
         match.fn(req, res, match.params);
     } else {
-        mount(req, res, notFound);
+        mount(req, res, notFound.bind(null, req, res));
     }
 });
 
