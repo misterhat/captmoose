@@ -56,7 +56,7 @@ router.addRoute('/moose/latest', function (req, res) {
             return error(req, res, 'database error');
         }
 
-        res.end(JSON.stringify(moose));
+        res.end(JSON.stringify(moose[0]));
     });
 });
 
