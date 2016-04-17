@@ -38,25 +38,46 @@ function validateMoose(moose) {
     return true;
 }
 
-function error(req, res, message) {
+function error(res, err) {
+    console.error(err.stack);
     res.statusCode = 500;
-    res.end('{"error":"' + message + '"}');
+    res.end('{"error":"' + err + '"}');
 }
 
-function notFound(req, res) {
+function notFound(res) {
     res.statusCode = 404;
     res.end('{"error":"not found"}');
 }
+
+// find a random moose
+router.addRoute('/moose/random', function (req, res) {
+    db.count({}, function (err, count) {
+        var random;
+
+        if (err) {
+            return error(res, err);
+        }
+
+        random = Math.floor(Math.random() * count);
+
+        db.find({}).skip(random).limit(1).exec(function (err, moose) {
+            if (err) {
+                error(res, err);
+            } else {
+                res.end(JSON.stringify(moose[0]));
+            }
+        });
+    });
+});
 
 // used finding the latest moose in the gallery
 router.addRoute('/moose/latest', function (req, res) {
     db.find({}).sort({ added: 1 }).limit(10).exec(function (err, moose) {
         if (err) {
-            console.error(err.stack);
-            return error(req, res, 'database error');
+            error(res, err);
+        } else {
+            res.end(JSON.stringify(moose));
         }
-
-        res.end(JSON.stringify(moose));
     });
 });
 
@@ -65,14 +86,11 @@ router.addRoute('/moose/:name', function (req, res, params) {
     if (req.method === 'GET') {
         db.findOne({ name: params.name }, function (err, moose) {
             if (err) {
-                console.error(err.stack);
-                return error(req, res, 'database error');
-            }
-
-            if (moose) {
+                error(res, err);
+            } else if (moose) {
                 res.end(JSON.stringify(moose));
             } else {
-                notFound(req, res);
+                notFound(res);
             }
         });
     // create a new moose
@@ -83,8 +101,7 @@ router.addRoute('/moose/:name', function (req, res, params) {
 
         jsonBody(req, function (err, body) {
             if (err) {
-                console.error(err.stack);
-                return error(req, res, 'invalid json');
+                return error(res, err);
             }
 
             if (!validateMoose(body)) {
@@ -94,8 +111,7 @@ router.addRoute('/moose/:name', function (req, res, params) {
 
             db.findOne({ name: params.name }, function (err, moose) {
                 if (err) {
-                    console.error(err.stack);
-                    return error(req, res, 'database error');
+                    return error(res, err);
                 }
 
                 if (moose) {
@@ -133,7 +149,7 @@ server = http.createServer(function (req, res) {
     if (match) {
         match.fn(req, res, match.params);
     } else {
-        mount(req, res, notFound.bind(null, req, res));
+        mount(req, res, notFound.bind(null, res));
     }
 });
 

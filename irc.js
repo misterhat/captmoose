@@ -127,8 +127,9 @@ client.addListener('message', function (from, to, message) {
 
     // moose was called to recently
     if (remaining < 25) {
-        return client.say(from, 'please wait another ' + (25 - remaining) +
-                          ' seconds');
+        client.say(from, 'please wait another ' + (25 - remaining) +
+                         ' seconds');
+        return;
     }
 
     if (bots) {
@@ -145,12 +146,11 @@ client.addListener('message', function (from, to, message) {
         }
 
         if (!moose) {
-            return client.say(to, c.bold.red('moose not found.') +
-                              ' create him at ' + url + '/edit/' + mooseMe);
+            return client.say(to, c.bold.red('moose not found.') + ' create ' +
+                                  'him at ' + url + '/edit/' + mooseMe);
         }
 
         moose = formatMoose(shrinkMoose(moose.moose));
-
         lastMessage = Date.now();
         sayMoose(client.say.bind(client, to), moose);
     });
