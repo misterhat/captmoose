@@ -132,7 +132,7 @@ client.addListener('message', function (from, to, message) {
     }
 
     if (bots) {
-        client.say(to, 'CaptDeer [NodeJS], create moose pictures at ' + url);
+        client.say(to, 'CaptMoose [NodeJS], create moose pictures at ' + url);
         return;
     }
 
@@ -146,8 +146,7 @@ client.addListener('message', function (from, to, message) {
 
         if (!moose) {
             return client.say(to, c.bold.red('moose not found.') +
-                              ' create him at http://' + config.host +
-                              '/edit/' + mooseMe);
+                              ' create him at ' + url + '/edit/' + mooseMe);
         }
 
         moose = formatMoose(shrinkMoose(moose.moose));

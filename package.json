@@ -1,6 +1,6 @@
 {
   "name": "captmoose",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A web-app and IRC bot to create pictures.",
   "main": "index.js",
   "scripts": {
