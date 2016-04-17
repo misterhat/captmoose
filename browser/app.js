@@ -120,6 +120,7 @@ function bucketFill(x, y, replaceColour, state) {
 function App() {
     var edit = window.location.href.match(/edit\/([A-z0-9 -_]+)\/?$/),
         state = hg.state({
+            nick: hg.value(''),
             moose: createMoose(),
             drawTool: hg.value('pencil'),
             colour: hg.value('blue'),
@@ -162,7 +163,10 @@ function App() {
         });
 
     if (edit) {
-        findMoose(edit[1], function (err, moose) {
+        edit = edit[1];
+        state.nick.set(edit);
+
+        findMoose(edit, function (err, moose) {
             if (err) {
                 return state.message.set({
                     type: 'bad',
@@ -264,7 +268,7 @@ function renderColours(colours, selected, onChange) {
     );
 }
 
-function renderHeader(message, onSubmit) {
+function renderHeader(nick, message, onSubmit) {
     return h('header', {
         'ev-event': hg.sendSubmit(onSubmit)
     }, [
@@ -275,7 +279,8 @@ function renderHeader(message, onSubmit) {
             name: 'name',
             placeholder: 'name your moose',
             title: 'name your moose',
-            type: 'text'
+            type: 'text',
+            value: nick
         }),
         h('button.moose-button', 'save')
     ]);
@@ -316,7 +321,8 @@ function renderFooter() {
 
 App.render = function (state) {
     return h('.moose-wrap', [
-        hg.partial(renderHeader, state.message, state.channels.save),
+        hg.partial(renderHeader, state.nick, state.message,
+                   state.channels.save),
         hg.partial(renderCanvas, state.moose, state.grid,
                    state.channels.touchMoose),
         hg.partial(renderColours, state.colours, state.colour,

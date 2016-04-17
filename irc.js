@@ -136,14 +136,18 @@ client.addListener('message', function (from, to, message) {
         return;
     }
 
-    findMoose(mooseMe[1].trim(), function (err, moose) {
+    mooseMe = mooseMe[1].trim();
+
+    findMoose(mooseMe, function (err, moose) {
         if (err) {
             client.say(to, c.bold.red('moose parsing error'));
             return console.error(err.stack);
         }
 
         if (!moose) {
-            return client.say(to, c.bold.red('moose not found'));
+            return client.say(to, c.bold.red('moose not found.') +
+                              ' create him at http://' + config.host +
+                              '/edit/' + mooseMe);
         }
 
         moose = formatMoose(shrinkMoose(moose.moose));
@@ -151,4 +155,8 @@ client.addListener('message', function (from, to, message) {
         lastMessage = Date.now();
         sayMoose(client.say.bind(client, to), moose);
     });
+});
+
+client.addListener('error', function (err) {
+    console.error(err.stack);
 });
