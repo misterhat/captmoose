@@ -247,7 +247,7 @@ function renderColours(colours, selected, onChange) {
             }
 
             if (colour === 'transparent') {
-                isTransparent = 'url(./transparent.png)';
+                isTransparent = 'url(/transparent.png)';
             }
 
             return h('li',
@@ -308,7 +308,9 @@ function renderTools(grid, tool, onClick) {
 function renderFooter() {
     return h('small', [
         'Copyright \u00a9 ' + new Date().getFullYear() + ' Mister Hat - ',
-        h('a', { href: './COPYING' }, 'AGPLv3+')
+        h('a', { href: './COPYING' }, 'AGPLv3+'),
+        ' - ',
+        h('a', { href: 'https://github.com/misterhat/captmoose' }, 'Repository')
     ]);
 }
 
