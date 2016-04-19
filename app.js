@@ -96,7 +96,7 @@ router.addRoute('/moose/:name', function (req, res, params) {
     // create a new moose
     } else if (req.method === 'POST') {
         if (!/[A-z0-9 -_]+/.test(params.name) || params.name.length > 48) {
-            return error(req, res, 'invalid moose name');
+            return error(res, new Error('invalid moose name'));
         }
 
         jsonBody(req, function (err, body) {
@@ -105,7 +105,7 @@ router.addRoute('/moose/:name', function (req, res, params) {
             }
 
             if (!validateMoose(body)) {
-                error(req, res, 'malformed moose (wrong colours or size)');
+                error(res, new Error('malformed moose (wrong colours/size)'));
                 return;
             }
 
@@ -130,7 +130,8 @@ router.addRoute('/moose/:name', function (req, res, params) {
             });
         });
     } else {
-        error(req, res, 'wrong method');
+        res.statusCode = 405;
+        res.end('{"error":"invalid method"}');
     }
 });
 

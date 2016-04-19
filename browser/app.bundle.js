@@ -165,7 +165,7 @@ function App() {
 
     if (edit) {
         edit = edit[1];
-        state.nick.set(edit);
+        state.nick.set(decodeURIComponent(edit));
 
         findMoose(edit, function (err, moose) {
             if (err) {
