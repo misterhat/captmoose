@@ -147,7 +147,8 @@ client.addListener('message', function (from, to, message) {
 
         if (!moose) {
             return client.say(to, c.bold.red('moose not found.') + ' create ' +
-                                  'him at ' + url + '/edit/' + mooseMe);
+                                  'him at ' + url + '/edit/' +
+                                  encodeURIComponent(mooseMe));
         }
 
         moose = formatMoose(shrinkMoose(moose.moose));
