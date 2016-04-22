@@ -106,7 +106,7 @@ function sayMoose(say, moose, done) {
 
         setTimeout(function () {
             sayMoose(say, moose.slice(2, moose.length), done);
-        }, 700);
+        }, 800);
     } else {
         if (done) {
             return done();
