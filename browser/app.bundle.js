@@ -5,7 +5,9 @@ var CanvasWidget = require('./lib/canvas'),
     hg = require('mercury'),
     xhr = require('xhr');
 
-var def = require('../moose-def');
+var def = require('../moose-def'),
+    CELL_WIDTH = 16,
+    CELL_HEIGHT = 24;
 
 function createMoose() {
     var moose = hg.array([]),
@@ -33,6 +35,8 @@ function saveMoose(state, form) {
             message: 'bad characters in moose name.'
         });
     }
+
+    state.nick.set(form.name);
 
     xhr.post('/moose/' + form.name, {
         json: state.moose()
@@ -195,13 +199,14 @@ function paintMoose(context, data) {
         height = moose.length,
         i, j;
 
-    context.clearRect(0, 0, width * 16, height * 24);
+    context.clearRect(0, 0, width * CELL_WIDTH, height * CELL_HEIGHT);
 
     for (i = 0; i < height; i += 1) {
         for (j = 0; j < width; j += 1) {
             if (moose[i][j] !== 'transparent') {
                 context.fillStyle = moose[i][j];
-                context.fillRect(j * 16, i * 24, 16, 24);
+                context.fillRect(j * CELL_WIDTH, i * CELL_HEIGHT, CELL_WIDTH,
+                                 CELL_HEIGHT);
             }
         }
     }
@@ -211,15 +216,15 @@ function paintMoose(context, data) {
 
         for (i = 0; i < width; i += 1) {
             context.beginPath();
-            context.moveTo((i * 16) - 0.5, 0);
-            context.lineTo((i * 16) - 0.5, height * 24);
+            context.moveTo((i * CELL_WIDTH) - 0.5, 0);
+            context.lineTo((i * CELL_WIDTH) - 0.5, height * CELL_HEIGHT);
             context.stroke();
         }
 
         for (i = 0; i < height; i += 1) {
             context.beginPath();
-            context.moveTo(0, (i * 24) - 0.5);
-            context.lineTo(width * 16, (i * 24) - 0.5);
+            context.moveTo(0, (i * CELL_HEIGHT) - 0.5);
+            context.lineTo(width * CELL_WIDTH, (i * CELL_HEIGHT) - 0.5);
             context.stroke();
         }
     }
@@ -237,12 +242,12 @@ function renderCanvas(moose, grid, onDrag) {
         }
     }, CanvasWidget(paintMoose, { moose: moose, grid: grid }, {
         title: 'pro-tip: right click > save image as to export your moose',
-        width: width * 16,
-        height: height * 24
+        width: width * CELL_WIDTH,
+        height: height * CELL_HEIGHT
     }));
 }
 
-function renderColours(colours, selected, onChange) {
+function renderColours(colours, selected, changeColour) {
     return h('ul.moose-horizontal-list',
         colours.map(function (colour) {
             var isSelected = '', isTransparent = '';
@@ -257,7 +262,7 @@ function renderColours(colours, selected, onChange) {
 
             return h('li',
                 h('button.moose-colour' + isSelected, {
-                    'ev-click': hg.sendClick(onChange, colour),
+                    'ev-click': hg.sendClick(changeColour, colour),
                     style: {
                         'background-color': colour,
                         'background-image': isTransparent
@@ -269,9 +274,9 @@ function renderColours(colours, selected, onChange) {
     );
 }
 
-function renderHeader(nick, message, onSubmit) {
+function renderHeader(nick, message, save) {
     return h('header', {
-        'ev-event': hg.sendSubmit(onSubmit)
+        'ev-event': hg.sendSubmit(save)
     }, [
         h('div.moose-message.moose-' + message.type + '-message',
             h('p', message.message)),

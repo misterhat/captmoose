@@ -1,13 +1,13 @@
-# captainmoose
+# captmoose
 Create fun, grid-based images in your browser and share them with friends on
 IRC.
 
-*insert image*
+![demo of captain moose](./captain-moose.png)
 
 ## Install
 
-    $ git clone https://github.com/misterhat/captainmoose
-    $ cd captainmoose
+    $ git clone https://github.com/misterhat/captmoose
+    $ cd captmoose
     $ npm install
 
 ## Running

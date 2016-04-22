@@ -96,7 +96,7 @@ function formatMoose(moose) {
 
 // we don't want the moose to get kicked for spamming, so implement a short
 // delay between two lines
-function sayMoose(say, moose) {
+function sayMoose(say, moose, done) {
     if (moose.length) {
         say(moose[0].join(''));
 
@@ -105,10 +105,12 @@ function sayMoose(say, moose) {
         }
 
         setTimeout(function () {
-            sayMoose(say, moose.slice(2, moose.length));
-        }, 800);
+            sayMoose(say, moose.slice(2, moose.length), done);
+        }, 700);
     } else {
-        return;
+        if (done) {
+            return done();
+        }
     }
 }
 
@@ -140,6 +142,8 @@ client.addListener('message', function (from, to, message) {
     mooseMe = mooseMe[1].trim();
 
     findMoose(mooseMe, function (err, moose) {
+        var shrunk;
+
         if (err) {
             client.say(to, c.bold.red('moose parsing error'));
             return console.error(err.stack);
@@ -151,9 +155,13 @@ client.addListener('message', function (from, to, message) {
                                   encodeURIComponent(mooseMe));
         }
 
-        moose = formatMoose(shrinkMoose(moose.moose));
         lastMessage = Date.now();
-        sayMoose(client.say.bind(client, to), moose);
+        shrunk = formatMoose(shrinkMoose(moose.moose));
+        sayMoose(client.say.bind(client, to), shrunk, function () {
+            if (mooseMe === 'random') {
+                client.say(to, 'a lovely ' + moose.name + ' moose');
+            }
+        });
     });
 });
 
