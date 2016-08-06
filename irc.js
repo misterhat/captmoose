@@ -130,7 +130,7 @@ client.addListener('message', function (from, to, message) {
     // moose was called to recently
     if (remaining < 25) {
         client.say(from, 'please wait another ' + (25 - remaining) +
-                         ' seconds');
+                         ' second' + (remaining < 24 ? 's' : ''));
         return;
     }
 
