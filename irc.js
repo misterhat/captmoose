@@ -130,7 +130,7 @@ client.addListener('message', function (from, to, message) {
     // moose was called too recently
     if (lastMessageAge < 25) {
         client.say(from, 'please wait another ' + (26 - lastMessageAge) + 
-                         ' seconds);
+                         ' seconds');
         return;
     }
 
