@@ -118,19 +118,19 @@ client.addListener('message', function (from, to, message) {
     // make sure only valid characters exist in the mooseme command
     var mooseMe = message.match(/^\.?moose(?:me)? ([A-z0-9 -_]+)/),
         bots = /^\.bots/.test(message),
-        remaining;
+        lastMessageAge;
 
     // message not from channel
     if (!/#/.test(to) || !(mooseMe || bots)) {
         return;
     }
 
-    remaining = Math.round((Date.now() - lastMessage) / 1000);
+    lastMessageAge = Math.round((Date.now() - lastMessage) / 1000);
 
-    // moose was called to recently
-    if (remaining < 25) {
-        client.say(from, 'please wait another ' + (25 - remaining) +
-                         ' second' + (remaining < 24 ? 's' : ''));
+    // moose was called too recently
+    if (lastMessageAge < 25) {
+        client.say(from, 'please wait another ' + (26 - lastMessageAge) + 
+                         ' seconds');
         return;
     }
 
