@@ -146,7 +146,7 @@ router.addRoute('/list', function(req, res) {
             res.write('<head><title>moose list</title></head>');
             res.write('<body>');
             for (var i = 0; i < meese.length; i += 1) {
-                res.write('<a href="http://sysdevs.org:1337/edit/' + meese[i].name + '">'+meese[i].name+'</a><br>');
+                res.write(`<a href="http://${req.headers.host}/edit/${encodeURIComponent(meese[i].name)}">${meese[i].name}</a><br>`);
             }
             res.write('</body></html>');
             res.end();
@@ -197,7 +197,7 @@ router.addRoute('/gallery/:pagenum', function(req, res, params) {
                 var lastmoose = meese.length ;
                 var moosematrix;
                 var htmlcolor = '';
-                res.write('<html><head lang="en"><meta charset="utf8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Moose Gallery - Page '+ pagenum+'</title><style>div {display: flex; flex-flow: row wrap; justify-content: space-between; }body { background-color: #343434; color: #fff; } table { border-spacing: 0px; padding: 10px 10px 10px 10px; } td { padding: 0px; border-spacing: 0px; }</style></head><body>');
+                res.write('<html><head lang="en"><meta charset="utf8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Moose Gallery - Page '+ pagenum+'</title><style>div {display: flex; flex-flow: row wrap; justify-content: space-between; }body { background-color: #343434; color: #fff; } table { border-spacing: 0px; padding: 10px 10px 10px 10px; } td { padding: 0px; border-spacing: 0px; } a { color: white; }</style></head><body>');
                 res.write(`
                     <form action="/gallery/1" method="get">
                         <input type="text" name="q">
@@ -215,7 +215,9 @@ router.addRoute('/gallery/:pagenum', function(req, res, params) {
                 res.write('\n<div>');
                 for (var i = 0 ; i < lastmoose; i += 1) {
                     moosematrix=meese[i].moose;
-                    res.write('\n<table><tr><td colspan="'+ moosematrix[0].length +'">'+meese[i].name + '</td></tr>');
+                    res.write('\n<table><tr><td colspan="'+ moosematrix[0].length +'">'+
+                        `<a href="http://${req.headers.host}/edit/${encodeURIComponent(meese[i].name)}">${meese[i].name}</a>`+
+                        '</td></tr>');
                     for (var y = 0; y < moosematrix.length; y++){
                         res.write('\n<tr>');
                         for (var x = 0; x < moosematrix[y].length; x++){
