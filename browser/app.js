@@ -68,8 +68,8 @@ function killMoose(moose) {
         return;
     }
 
-    for (i = 0; i < moose().length; i += 1) {
-        for (j = 0; j < moose.get(0)().length; j += 1) {
+    for (var i = 0; i < moose().length; i += 1) {
+        for (var j = 0; j < moose.get(0)().length; j += 1) {
             moose.get(i).get(j).set('transparent');
         }
     }
@@ -150,8 +150,6 @@ function App() {
                     }
                 },
                 changeTool: function (state, tool) {
-                    var i, j;
-
                     if (tool === 'bucket') {
                         state.drawTool.set('bucket');
                     } else if (tool === 'pencil') {
@@ -273,6 +271,20 @@ function renderColours(colours, selected, changeColour) {
     );
 }
 
+function renderNav() {
+    return h('ul.nav', {}, [
+        h('li.nav-item', {}, h('a.nav-link.active', {
+            href: '/'
+        }, 'captmoose')),
+        h('li.nav-item', {}, h('a.nav-link', {
+            href: '/gallery/1'
+        }, 'gallery')),
+        h('li.nav-item', {}, h('a.nav-link', {
+            href: '/list'
+        }, 'list'))
+    ]);
+}
+
 function renderHeader(nick, message, save) {
     return h('header', {
         'ev-event': hg.sendSubmit(save)
@@ -326,16 +338,19 @@ function renderFooter() {
 }
 
 App.render = function (state) {
-    return h('.moose-wrap', [
-        hg.partial(renderHeader, state.nick, state.message,
-                   state.channels.save),
-        hg.partial(renderCanvas, state.moose, state.grid,
-                   state.channels.touchMoose),
-        hg.partial(renderColours, state.colours, state.colour,
-                   state.channels.changeColour),
-        hg.partial(renderTools, state.grid, state.drawTool,
-                   state.channels.changeTool),
-        hg.partial(renderFooter)
+    return h('div', {}, [ 
+        hg.partial(renderNav),
+        h('.moose-wrap', [
+            hg.partial(renderHeader, state.nick, state.message,
+                       state.channels.save),
+            hg.partial(renderCanvas, state.moose, state.grid,
+                       state.channels.touchMoose),
+            hg.partial(renderColours, state.colours, state.colour,
+                       state.channels.changeColour),
+            hg.partial(renderTools, state.grid, state.drawTool,
+                       state.channels.changeTool),
+            hg.partial(renderFooter)
+        ])
     ]);
 };
 
