@@ -144,6 +144,64 @@ router.addRoute('/edit/:moose', function (req, res) {
     res.end(indexHtml);
 });
 
+router.addRoute('/gallery/:pagenum', function(req, res, params) {
+    res.setHeader('Content-Type', 'text/html');
+
+    db.count({}, function (err, count) {
+      if (err) {
+          return error(res, err);
+      }
+      var mooseperpage = 10;
+      var totalmeeselength=count;
+      var pagenum = parseInt(params.pagenum);
+      var firstmoose = pagenum * mooseperpage - mooseperpage;
+
+      db.find({}).sort({ added: 1 }).skip(firstmoose).limit(mooseperpage).exec(function (err, meese) {
+          if (err) {
+              res.end('error loading meese :(');
+          } else {
+              if (pagenum >= 1 && pagenum * mooseperpage - mooseperpage < totalmeeselength){
+                var lastmoose = meese.length ;
+                var moosematrix;
+                var htmlcolor = '';
+                res.write('<html><head lang="en"><meta charset="utf8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Moose Gallery - Page '+ pagenum+'</title><style>div {display: flex; flex-flow: row wrap; justify-content: space-between; }body { background-color: #343434; color: #fff; } table { border-spacing: 0px; padding: 10px 10px 10px 10px; } td { padding: 0px; border-spacing: 0px; }</style></head><body>');
+                if(pagenum - 1 > 0)
+                  res.write('\n<input type="button" onclick="location.href=\'../gallery/'+ (pagenum - 1) +'\';" value="Previous" />');
+                if((pagenum + 1 ) * mooseperpage - mooseperpage < totalmeeselength)
+                  res.write('\n<input type="button" onclick="location.href=\'../gallery/'+ (pagenum + 1) +'\';" value="Next" />');
+                res.write('\n<div>');
+                for (var i = 0 ; i < lastmoose; i += 1) {
+                    moosematrix=meese[i].moose;
+                    res.write('\n<table><tr><td colspan="'+ moosematrix[0].length +'">'+meese[i].name + '</td></tr>');
+                    for (var y = 0; y < moosematrix.length; y++){
+                      res.write('\n<tr>')
+                      for (var x = 0; x < moosematrix[y].length; x++){
+                        htmlcolor = moosematrix[y][x];
+                          res.write('\n<td style="background-color: '+htmlcolor+';">&nbsp;&nbsp;&nbsp;<td>')
+                      }
+                      res.write('\n</tr>')
+                    }
+                    res.write('\n</table>');
+                }
+                res.write('\n</div>');
+                if(pagenum - 1 > 0)
+                  res.write('<br>\n<input type="button" onclick="location.href=\'../gallery/'+(pagenum-1)+'\';" value="Previous" />');
+                if((pagenum + 1 )* mooseperpage - mooseperpage < totalmeeselength)
+                  res.write('\n<input type="button" onclick="location.href=\'../gallery/'+(pagenum+1)+'\';" value="Next" />');
+                res.write('\n</body></html>');
+                res.end();
+
+              }
+              else {
+                res.write('\nInvalid page number.');
+                res.end();
+              }
+
+          }
+      });
+    });
+});
+
 server = http.createServer(function (req, res) {
     var match = router.match(req.url);
 
