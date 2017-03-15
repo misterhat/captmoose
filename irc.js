@@ -1,5 +1,5 @@
 var http = require('http'),
-
+    Lock = require('rwlock'),
     irc = require('irc'),
     c = require('irc-colors');
 
@@ -10,6 +10,8 @@ var config = require('./config'),
     // when the last moose display occured
     lastMessage = 0,
     url = 'http://' + config.host + (config.port ? ':' + config.port : '');
+
+var lock = new Lock();
 
 // find a moose on the moose server and try to parse it
 function findMoose(name, done) {
@@ -115,52 +117,60 @@ function sayMoose(say, moose, done) {
 }
 
 client.addListener('message', function (from, to, message) {
-    // make sure only valid characters exist in the mooseme command
-    var mooseMe = message.match(/^\.?moose(?:me)? ([A-z0-9 -_]+)/),
-        bots = /^\.bots/.test(message),
-        remaining;
+    lock.writeLock(function(unlock) {
+        // make sure only valid characters exist in the mooseme command
+        var mooseMe = message.match(/^\.?moose(?:me)? ([A-z0-9 -_]+)/),
+            bots = /^\.bots/.test(message),
+            remaining;
 
-    // message not from channel
-    if (!/#/.test(to) || !(mooseMe || bots)) {
-        return;
-    }
-
-    remaining = Math.round((Date.now() - lastMessage) / 1000);
-
-    // moose was called to recently
-    if (remaining < 25) {
-        client.say(from, 'please wait another ' + (25 - remaining) +
-                         ' second' + (remaining < 24 ? 's' : ''));
-        return;
-    }
-
-    if (bots) {
-        client.say(to, 'CaptMoose [NodeJS], create moose pictures at ' + url);
-        return;
-    }
-
-    mooseMe = mooseMe[1].trim();
-
-    findMoose(mooseMe, function (err, moose) {
-        var shrunk;
-
-        if (err) {
-            client.say(to, c.bold.red('moose parsing error'));
-            return console.error(err.stack);
+        // message not from channel
+        if (!/#/.test(to) || !(mooseMe || bots)) {
+            unlock();
+            return;
         }
 
-        if (!moose) {
-            return client.say(to, c.bold.red('moose not found.') + ' create ' +
-                                  'him at ' + url + '/edit/' +
-                                  encodeURIComponent(mooseMe));
+        remaining = Math.round((Date.now() - lastMessage) / 1000);
+
+        // moose was called to recently
+        if (remaining < 25) {
+            client.say(from, 'please wait another ' + (25 - remaining) +
+                             ' second' + (remaining < 24 ? 's' : ''));
+            unlock();
+            return;
         }
 
-        lastMessage = Date.now();
-        shrunk = formatMoose(shrinkMoose(moose.moose));
-        sayMoose(client.say.bind(client, to), shrunk, function () {
-            if (mooseMe === 'random') {
-                client.say(to, 'a lovely ' + moose.name + ' moose');
+        if (bots) {
+            client.say(to, 'CaptMoose [NodeJS], create moose pictures at ' + url);
+            unlock();
+            return;
+        }
+
+        mooseMe = mooseMe[1].trim();
+
+        findMoose(mooseMe, function (err, moose) {
+            var shrunk;
+
+            if (err) {
+                client.say(to, c.bold.red('moose parsing error'));
+                unlock();
+                return console.error(err.stack);
             }
+
+            if (!moose) {
+                unlock();
+                return client.say(to, c.bold.red('moose not found.') + ' create ' +
+                                      'him at ' + url + '/edit/' +
+                                      encodeURIComponent(mooseMe));
+            }
+
+            lastMessage = Date.now();
+            shrunk = formatMoose(shrinkMoose(moose.moose));
+            sayMoose(client.say.bind(client, to), shrunk, function () {
+                unlock();
+                if (mooseMe === 'random') {
+                    client.say(to, 'a lovely ' + moose.name + ' moose');
+                }
+            });
         });
     });
 });
