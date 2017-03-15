@@ -181,7 +181,7 @@ router.addRoute('/gallery/:pagenum', function(req, res, params) {
                 var htmlcolor = '';
                 res.write('<html><head lang="en"><meta charset="utf8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Moose Gallery - Page '+ pagenum+'</title><style>div {display: flex; flex-flow: row wrap; justify-content: space-between; }body { background-color: #343434; color: #fff; } table { border-spacing: 0px; padding: 10px 10px 10px 10px; } td { padding: 0px; border-spacing: 0px; }</style></head><body>');
                 res.write(`
-                    <form action="/gallery/${pagenum}" method="get">
+                    <form action="/gallery/1" method="get">
                         <input type="text" name="q">
                         <input type="submit" value="Search">
                     </form>
