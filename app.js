@@ -146,7 +146,7 @@ router.addRoute('/list', function(req, res) {
             res.write('<head><title>moose list</title></head>');
             res.write('<body>');
             for (var i = 0; i < meese.length; i += 1) {
-                res.write(`<a href="http://${req.headers.host}/edit/${encodeURIComponent(meese[i].name)}">${meese[i].name}</a><br>`);
+                res.write(`<a href="/edit/${encodeURIComponent(meese[i].name)}">${meese[i].name}</a><br>`);
             }
             res.write('</body></html>');
             res.end();
@@ -216,7 +216,7 @@ router.addRoute('/gallery/:pagenum', function(req, res, params) {
                 for (var i = 0 ; i < lastmoose; i += 1) {
                     moosematrix=meese[i].moose;
                     res.write('\n<table><tr><td colspan="'+ moosematrix[0].length +'">'+
-                        `<a href="http://${req.headers.host}/edit/${encodeURIComponent(meese[i].name)}">${meese[i].name}</a>`+
+                        `<a href="/edit/${encodeURIComponent(meese[i].name)}">${meese[i].name}</a>`+
                         '</td></tr>');
                     for (var y = 0; y < moosematrix.length; y++){
                         res.write('\n<tr>');
