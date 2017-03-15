@@ -187,9 +187,13 @@ router.addRoute('/gallery/:pagenum', function(req, res, params) {
                     </form>
                 `);
                 if(pagenum - 1 > 0)
-                    res.write('\n<input type="button" onclick="location.href=\'../gallery/'+ (pagenum - 1) +'\';" value="Previous" />');
+                    res.write(`
+                        <input type="button" onclick="location.href='../gallery/${pagenum - 1}${(() => search_q != '' ? '?q='+search_q : '')()}';" value="Previous" />
+                    `);
                 if((pagenum + 1 ) * mooseperpage - mooseperpage < totalmeeselength)
-                    res.write('\n<input type="button" onclick="location.href=\'../gallery/'+ (pagenum + 1) +'\';" value="Next" />');
+                    res.write(`
+                        <input type="button" onclick="location.href='../gallery/${pagenum + 1}${(() => search_q != '' ? '?q='+search_q : '')()}';" value="Next" />
+                    `);
                 res.write('\n<div>');
                 for (var i = 0 ; i < lastmoose; i += 1) {
                     moosematrix=meese[i].moose;
@@ -206,9 +210,13 @@ router.addRoute('/gallery/:pagenum', function(req, res, params) {
                 }
                 res.write('\n</div>');
                 if(pagenum - 1 > 0)
-                    res.write('<br>\n<input type="button" onclick="location.href=\'../gallery/'+(pagenum-1)+'\';" value="Previous" />');
+                    res.write(`<br>
+                        <input type="button" onclick="location.href='../gallery/${pagenum - 1}${(() => search_q != '' ? '?q='+search_q : '')()}';" value="Previous" />
+                    `);
                 if((pagenum + 1 )* mooseperpage - mooseperpage < totalmeeselength)
-                    res.write('\n<input type="button" onclick="location.href=\'../gallery/'+(pagenum+1)+'\';" value="Next" />');
+                    res.write(`
+                        <input type="button" onclick="location.href='../gallery/${pagenum + 1}${(() => search_q != '' ? '?q='+search_q : '')()}';" value="Next" />
+                    `);
                 res.write('\n</body></html>');
                 res.end();
 
