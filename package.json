@@ -1,6 +1,6 @@
 {
   "name": "captmoose",
-  "version": "0.4.2",
+  "version": "0.5.2-gallery",
   "description": "A web-app and IRC bot to create pictures.",
   "main": "index.js",
   "scripts": {
@@ -20,6 +20,7 @@
   "license": "AGPLv3",
   "dependencies": {
     "body": "^5.1.0",
+    "escape-regex-string": "^1.0.4",
     "flood-fill": "^0.1.1",
     "irc": "^0.4.1",
     "irc-colors": "^1.2.1",
