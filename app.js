@@ -197,7 +197,7 @@ router.addRoute('/gallery/:pagenum', function(req, res, params) {
                 var lastmoose = meese.length ;
                 var moosematrix;
                 var htmlcolor = '';
-                res.write('<html><head lang="en"><meta charset="utf8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Moose Gallery - Page '+ pagenum+'</title><style>div { display: flex; flex-flow: row wrap; justify-content: space-between; } body { background-color: #343434; color: #fff; } table { width: 20.625em; border-spacing: 0em; padding: .625em .625em .625em .625em; } td { padding: 0em; border-spacing: em; } a { color: white; }</style></head><body>');
+                res.write('<html><head lang="en"><meta charset="utf8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Moose Gallery - Page '+ pagenum+'</title><style>div { display: flex; flex-flow: row wrap; justify-content: space-between; } body { background-color: #343434; color: #fff; } table { width: 20.625em; border-spacing: 0em; padding: .625em .625em .625em .625em; } td { padding: 0em; border-spacing: 0em; } a { color: white; }</style></head><body>');
                 res.write(`
                     <form action="/gallery/1" method="get">
                         <input type="text" name="q">
