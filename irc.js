@@ -4,20 +4,20 @@ var http = require('http'),
     c = require('irc-colors');
 
 var config = require('./config'),
-    client = new irc.Client(config.server, config.nick || 'CaptMoose', {
-        channels: config.channels
+    client = new irc.Client(config.irc.server, config.irc.nick || 'CaptMoose', {
+        channels: config.irc.channels
     }),
     // when the last moose display occured
     lastMessage = 0,
-    url = 'http://' + config.host + (config.port ? ':' + config.port : '');
+    url = 'http://' + config.app.host;
 
 var lock = new Lock();
 
 // find a moose on the moose server and try to parse it
 function findMoose(name, done) {
     http.request({
-        host: config.host,
-        port: config.port,
+        host: config.app.host,
+        port: config.app.port,
         path: '/moose/' + encodeURIComponent(name)
     }, function (res) {
         var moose = '';

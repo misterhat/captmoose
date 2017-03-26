@@ -1,6 +1,29 @@
 {
-    "host": "sysdevs.org",
-    "port": 1337,
-    "server": "irc.rizon.net",
-    "channels": [ "#ghetty", "#trollhour" ]
+    "app": {
+        "host": "localhost",
+        "port": 8080
+    },
+    "irc": {
+        "server": "irc.rizon.net",
+        "channels": [ "#ghetty", "#trollhour" ]
+    },
+    "sql": {
+        "host": "localhost",
+        "user": "",
+        "password": "",
+        "database": "moose"
+    },
+    "nedb": {
+        "filename": "./moose.db",
+        "autoload": true
+    },  
+    "moose": {
+        "width": 26, 
+        "height": 15, 
+        "colors": [
+            "transparent", "white", "black", "navy", "green", "red", "brown",
+            "purple", "olive", "yellow", "lime", "teal", "cyan", "blue", "fuchsia",
+            "grey", "lightgrey"
+        ]   
+    }
 }

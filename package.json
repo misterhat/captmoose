@@ -1,6 +1,6 @@
 {
   "name": "captmoose",
-  "version": "0.5.2-gallery",
+  "version": "0.6.0",
   "description": "A web-app and IRC bot to create pictures.",
   "main": "index.js",
   "scripts": {
@@ -30,6 +30,7 @@
     "routes": "^2.1.0",
     "st": "^1.1.0",
     "xhr": "^2.2.0",
-    "rwlock": "^5.0.0"
+    "rwlock": "^5.0.0",
+    "mysql": "^2.13.0"
   }
 }

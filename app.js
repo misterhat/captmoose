@@ -1,36 +1,33 @@
 var fs = require('fs'),
     http = require('http'),
-
-    Datastore = require('nedb'),
     jsonBody = require('body/json'),
     routes = require('routes'),
     st = require('st'),
-    q_escape = require('escape-regex-string');
+    q_escape = require('escape-regex-string'),
+    mysql = require('mysql'),
+    compress = require('./compress');
 
 var config = require('./config'),
-    def = require('./moose-def'),
-    db = new Datastore({ filename: './moose.db', autoload: true }),
+    pool = mysql.createPool(config.sql),
     mount = st({ path: __dirname + '/browser', url: '/', passthrough: true }),
     router = routes(),
     // cache index to avoid fs reads
     indexHtml = fs.readFileSync('./browser/index.html'),
     server;
 
-// make sure name is indexed since it's used for finding the moose in IRC
-db.ensureIndex({ fieldName: 'name' });
-
 // make sure the moose has no colours that aren't defined here
 function validateMoose(moose) {
     var i, j;
 
-    if (moose.length !== def.height || moose[0].length !== def.width) {
+    if (moose.length !== config.moose.height
+            || moose[0].length !== config.moose.width) {
         return false;
     }
 
     for (i = 0; i < moose.length; i += 1) {
         for (j = 0; j < moose[0].length; j += 1) {
             // is the colour of the cell in our colour definition?
-            if (def.colours.indexOf(moose[i][j]) === -1) {
+            if (config.moose.colors.indexOf(moose[i][j]) === -1) {
                 return false;
             }
         }
@@ -50,51 +47,54 @@ function notFound(res) {
     res.end('{"error":"not found"}');
 }
 
+function sendMoose(res, row) {
+    let image = compress.decompress(JSON.parse(row.image));
+    res.end(JSON.stringify({
+        name: row.name,
+        moose: image,
+        added: row.created
+    }));
+}
+
 // find a random moose
 router.addRoute('/moose/random', function (req, res) {
-    db.count({}, function (err, count) {
-        var random;
-
+    pool.getConnection((err, connection) => {
         if (err) {
             return error(res, err);
         }
-
-        random = Math.floor(Math.random() * count);
-
-        db.find({}).skip(random).limit(1).exec(function (err, moose) {
-            if (err) {
-                error(res, err);
-            } else {
-                res.end(JSON.stringify(moose[0]));
-            }
-        });
+        connection.query('SELECT * FROM meese ORDER BY RAND() LIMIT 1')
+            .on('result', row => sendMoose(res, row))
+            .on('end', () => connection.release())
+            .on('error', err => error(res, err));
     });
 });
 
 // used finding the latest moose in the gallery
 router.addRoute('/moose/latest', function (req, res) {
-    db.find({}).sort({ added: 1 }).limit(10).exec(function (err, moose) {
+    pool.getConnection((err, connection) => {
         if (err) {
-            error(res, err);
-        } else {
-            res.end(JSON.stringify(moose));
+            return err(res, err);
         }
+        connection.query('SELECT * FROM meese ORDER BY id DESC LIMIT 10')
+            .on('result', row => sendMoose(res, row))
+            .on('end', () => { res.end(); connection.release(); })
+            .on('error', err => error(res, err));
     });
 });
 
 router.addRoute('/moose/:name', function (req, res, params) {
     // find a specific moose by name
     if (req.method === 'GET') {
-        db.findOne({ name: params.name }, function (err, moose) {
+        pool.getConnection((err, connection) => {
             if (err) {
-                error(res, err);
-            } else if (moose) {
-                res.end(JSON.stringify(moose));
-            } else {
-                notFound(res);
+                return error(res, err);
             }
+            connection.query('SELECT * FROM meese WHERE name = ?', [params.name])
+                .on('result', row => sendMoose(res, row))
+                .on('end', () => connection.release())
+                .on('error', err => error(res, err));
         });
-        // create a new moose
+    // create a new moose
     } else if (req.method === 'POST') {
         if (!/[A-z0-9 -_]+/.test(params.name) || params.name.length > 48) {
             return error(res, new Error('invalid moose name'));
@@ -106,28 +106,30 @@ router.addRoute('/moose/:name', function (req, res, params) {
             }
 
             if (!validateMoose(body)) {
-                error(res, new Error('malformed moose (wrong colours/size)'));
+                error(res, new Error('malformed moose (wrong colors/size)'));
                 return;
             }
 
-            db.findOne({ name: params.name }, function (err, moose) {
+            pool.getConnection((err, connection) => {
                 if (err) {
                     return error(res, err);
                 }
-
-                if (moose) {
-                    // 409 is used to specify existing moose
-                    res.statusCode = 409;
-                    return res.end('{"error":"moose already exists" }');
-                }
-
-                db.insert({
-                    name: params.name,
-                    moose: body,
-                    added: Date.now()
-                });
-
-                res.end('{"success":"created new moose"}');
+                connection.query('SELECT COUNT(*) AS count FROM meese WHERE name = ?', [params.name])
+                    .on('result', row => {
+                        if (row.count != 0) {
+                            res.statusCode = 409; // specifies existing moose
+                            return res.end('{"error":"moose already exists"}');
+                        }
+                        let data = {
+                            name: params.name,
+                            image: JSON.stringify(compress.compress(body)),
+                            created: Date.now()
+                        };
+                        connection.query('INSERT INTO meese SET ?', data)
+                            .on('end', () => { res.end('{"success":"created new moose"}'); connection.release(); })
+                            .on('error', err => error(res, err));
+                    })
+                    .on('error', err => error(res, err));
             });
         });
     } else {
@@ -138,19 +140,19 @@ router.addRoute('/moose/:name', function (req, res, params) {
 
 router.addRoute('/list', function(req, res) {
     res.setHeader('Content-Type', 'text/html');
-    db.find({}).sort({ added: 1 }).exec(function (err, meese) {
+    res.write('<!doctype html><html lang="en">');
+    res.write('<head><title>moose list</title></head><body>');
+    pool.getConnection((err, connection) => {
         if (err) {
-            res.end('error loading meese :(');
-        } else {
-            res.write('<!doctype html><html lang="">');
-            res.write('<head><title>moose list</title></head>');
-            res.write('<body>');
-            for (var i = 0; i < meese.length; i += 1) {
-                res.write(`<a href="/edit/${encodeURIComponent(meese[i].name)}">${meese[i].name}</a><br>`);
-            }
-            res.write('</body></html>');
-            res.end();
+            return res.end('Error connecting to MySQL</body></html>');
         }
+        connection.query('SELECT * FROM meese ORDER BY id ASC')
+            .on('result', row => {
+                let url = '/edit/' + encodeURIComponent(row.name);
+                res.write('<a href="' + url + '">' + row.name + '</a><br>');
+            })
+            .on('end', () => { res.end('</body></html>'); connection.release(); })
+            .on('error', err => error(res, err));
     });
 });
 
@@ -171,7 +173,8 @@ router.addRoute('/gallery', function(req, res) {
 
 router.addRoute('/gallery/:pagenum', function(req, res, params) {
     res.setHeader('Content-Type', 'text/html');
-
+    res.end('Gallery temporarily disabled :(!');
+            /*
     db.count({}, function (err, count) {
         if (err) {
             return error(res, err);
@@ -247,7 +250,7 @@ router.addRoute('/gallery/:pagenum', function(req, res, params) {
             }
 
         });
-    });
+    });*/
 });
 
 server = http.createServer(function (req, res) {
@@ -260,7 +263,7 @@ server = http.createServer(function (req, res) {
     }
 });
 
-server.listen(config.port, function () {
+server.listen(config.app.port, function () {
     console.log('listening on ' + server.address().port);
 });
 
