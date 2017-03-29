@@ -178,7 +178,7 @@ router.addRoute('/gallery/:pagenum', function(req, res, params) {
             return res.end('<html><head></head><body>Error connecting to MySQL</body></html>');
         }
         var totalmeeselength=0;
-        connection.query('SELECT COUNT(*) AS meesecount FROM meese ORDER BY id ASC')
+        connection.query('SELECT COUNT(*) AS meesecount FROM meese')
             .on('result', row => { 
                 totalmeeselength=row.meesecount 
                 var search_q = params.pagenum.split('?')[1] || '';
