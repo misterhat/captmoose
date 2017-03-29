@@ -178,7 +178,7 @@ router.addRoute('/gallery/:pagenum', function(req, res, params) {
             return res.end('<html><head></head><body>Error connecting to MySQL</body></html>');
         }
         var totalmeeselength=0;
-        connection.query('SELECT COUNT(*) AS meesecount FROM meese')
+        connection.query('SELECT COUNT(*) AS meesecount FROM meese ORDER BY id ASC')
             .on('result', row => { 
                 totalmeeselength=row.meesecount 
                 var search_q = params.pagenum.split('?')[1] || '';
@@ -233,9 +233,9 @@ router.addRoute('/gallery/:pagenum', function(req, res, params) {
                                         res.write('\n<tr>');
                                     if(y >0 && y % config.moose.width === 0)
                                         res.write('\n</tr>');
-                                    res.write('\n<td style="background-color: ' + moose[y] + ';">&nbsp;&nbsp;&nbsp;<td>');
+                                    res.write('\n<td style="background-color: ' + moose[y] + ';">&nbsp;&nbsp;&nbsp;</td>');
                                 }
-                                res.write('\n</table>');
+                                res.write('\n</tr></table>');
                             }
                             res.write('\n</div>');
                             if(pagenum - 1 > 0)
