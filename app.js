@@ -173,84 +173,93 @@ router.addRoute('/gallery', function(req, res) {
 
 router.addRoute('/gallery/:pagenum', function(req, res, params) {
     res.setHeader('Content-Type', 'text/html');
-    res.end('Gallery temporarily disabled :(!');
-            /*
-    db.count({}, function (err, count) {
+    pool.getConnection((err, connection) => {
         if (err) {
-            return error(res, err);
+            return res.end('<html><head></head><body>Error connecting to MySQL</body></html>');
         }
-
-        var search_param = {};
-        var search_q = params.pagenum.split('?')[1] || '';
-        search_q = decodeURI(search_q.split('=')[1] || '').replace('+', ' ');
-        if (search_q != '') {
-            search_param.name = RegExp(q_escape(search_q));
-        }
-        var mooseperpage = 10;
-        var totalmeeselength=count;
-        var pagenum = +params.pagenum.split('?')[0];
-        var firstmoose = pagenum * mooseperpage - mooseperpage;
-
-        db.find(search_param).sort({ added: 1 }).skip(firstmoose).limit(mooseperpage).exec(function (err, meese) {
-            if (err) {
-                res.end('error loading meese :(');
-                return;
-            }
-            if (pagenum >= 1 && pagenum * mooseperpage - mooseperpage < totalmeeselength){
-                var lastmoose = meese.length ;
-                var moosematrix;
-                var htmlcolor = '';
-                res.write('<html><head lang="en"><meta charset="utf8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Moose Gallery - Page '+ pagenum+'</title><style>div { display: flex; flex-flow: row wrap; justify-content: space-between; } body { background-color: #343434; color: #fff; } table { width: 20.625em; border-spacing: 0em; padding: .625em .625em .625em .625em; } td { padding: 0em; border-spacing: 0em; } a { color: white; }</style></head><body>');
-                res.write(`
-                    <form action="/gallery/1" method="get">
-                        <input type="text" name="q">
-                        <input type="submit" value="Search">
-                    </form>
-                `);
-                if(pagenum - 1 > 0)
+        var totalmeeselength=0;
+        connection.query('SELECT COUNT(*) AS meesecount FROM meese ORDER BY id ASC')
+            .on('result', row => { 
+                totalmeeselength=row.meesecount 
+                var search_q = params.pagenum.split('?')[1] || '';
+                search_q = decodeURI(search_q.split('=')[1] || '').replace('+', ' ');
+                var mooseperpage = 10;
+                var pagenum = +params.pagenum.split('?')[0];
+                var firstmoose = pagenum * mooseperpage - mooseperpage;
+                var moose={};
+                var meese=[];
+                var i=0;
+                if (pagenum >= 1 && pagenum * mooseperpage - mooseperpage < totalmeeselength){
+                    res.write('<html><head lang="en"><meta charset="utf8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Moose Gallery - Page '+ pagenum+'</title><style>div { display: flex; flex-flow: row wrap; justify-content: space-between; } body { background-color: #343434; color: #fff; } table { width: 20.625em; border-spacing: 0em; padding: .625em .625em .625em .625em; } td { padding: 0em; border-spacing: 0em; } a { color: white; }</style></head><body>');
                     res.write(`
-                        <input type="button" onclick="location.href='../gallery/${pagenum - 1}${(() => search_q != '' ? '?q='+search_q : '')()}';" value="Previous" />
+                        <form action="/gallery/1" method="get">
+                            <input type="text" name="q">
+                            <input type="submit" value="Search">
+                        </form>
                     `);
-                if((pagenum + 1 ) * mooseperpage - mooseperpage < totalmeeselength)
-                    res.write(`
-                        <input type="button" onclick="location.href='../gallery/${pagenum + 1}${(() => search_q != '' ? '?q='+search_q : '')()}';" value="Next" />
-                    `);
-                res.write('\n<div>');
-                for (var i = 0 ; i < lastmoose; i += 1) {
-                    moosematrix=meese[i].moose;
-                    res.write('\n<table><tr><td colspan="'+ moosematrix[0].length +'">'+
-                        `<a href="/edit/${encodeURIComponent(meese[i].name)}">${meese[i].name}</a>`+
-                        '</td></tr>');
-                    for (var y = 0; y < moosematrix.length; y++){
-                        res.write('\n<tr>');
-                        for (var x = 0; x < moosematrix[y].length; x++){
-                            htmlcolor = moosematrix[y][x];
-                            res.write('\n<td style="background-color: '+htmlcolor+';">&nbsp;&nbsp;&nbsp;<td>');
-                        }
-                        res.write('\n</tr>');
+                    if(pagenum - 1 > 0)
+                        res.write(`
+                            <input type="button" onclick="location.href='../gallery/${pagenum - 1}${(() => search_q != '' ? '?q='+search_q : '')()}';" value="Previous" />
+                        `);
+                    if((pagenum + 1 ) * mooseperpage - mooseperpage < totalmeeselength)
+                        res.write(`
+                            <input type="button" onclick="location.href='../gallery/${pagenum + 1}${(() => search_q != '' ? '?q='+search_q : '')()}';" value="Next" />
+                        `);
+                    res.write('\n<div>');
+
+                    var querystring="";
+                    if(search_q!=''){
+                        querystring='SELECT * FROM meese WHERE name LIKE "%' + search_q + '%" ORDER BY id ASC LIMIT ' + mooseperpage + ' OFFSET ' + firstmoose;
+                    } else {
+                        querystring='SELECT * FROM meese ORDER BY id ASC LIMIT ' + mooseperpage + ' OFFSET ' + firstmoose;
                     }
-                    res.write('\n</table>');
+                    
+                    connection.query(querystring)
+                        .on('result', row => {
+                            moose={};
+                            moose['name']=row.name;
+                            moose['moose']=JSON.parse(row.image).map(curr => config.moose.colors[curr]);
+                            meese.push(moose);
+                            i++;
+                        })
+                        .on('end', () => {
+                            for (var i = 0 ; i < meese.length ; i += 1) {
+                                moose=meese[i].moose;
+                                res.write('\n<table><tr><td colspan="'+ config.moose.width +'">'+
+                                    `<a href="/edit/${encodeURIComponent(meese[i].name)}">${meese[i].name}</a>`+
+                                    '</td></tr>');
+                                for (var y = 0; y < config.moose.height * config.moose.width; y++){
+                                    if(y % config.moose.width === 0)
+                                        res.write('\n<tr>');
+                                    if(y >0 && y % config.moose.width === 0)
+                                        res.write('\n</tr>');
+                                    res.write('\n<td style="background-color: ' + moose[y] + ';">&nbsp;&nbsp;&nbsp;</td>');
+                                }
+                                res.write('\n</tr></table>');
+                            }
+                            res.write('\n</div>');
+                            if(pagenum - 1 > 0)
+                                res.write(`<br>
+                                    <input type="button" onclick="location.href='../gallery/${pagenum - 1}${(() => search_q != '' ? '?q='+search_q : '')()}';" value="Previous" />
+                                `);
+                            if((pagenum + 1 )* mooseperpage - mooseperpage < totalmeeselength)
+                                res.write(`
+                                    <input type="button" onclick="location.href='../gallery/${pagenum + 1}${(() => search_q != '' ? '?q='+search_q : '')()}';" value="Next" />
+                                `);
+                            res.write('\n</body></html>');
+                            res.end();
+                            connection.release(); 
+                        })
+                        .on('error', err => error(res,err));
+
                 }
-                res.write('\n</div>');
-                if(pagenum - 1 > 0)
-                    res.write(`<br>
-                        <input type="button" onclick="location.href='../gallery/${pagenum - 1}${(() => search_q != '' ? '?q='+search_q : '')()}';" value="Previous" />
-                    `);
-                if((pagenum + 1 )* mooseperpage - mooseperpage < totalmeeselength)
-                    res.write(`
-                        <input type="button" onclick="location.href='../gallery/${pagenum + 1}${(() => search_q != '' ? '?q='+search_q : '')()}';" value="Next" />
-                    `);
-                res.write('\n</body></html>');
-                res.end();
-
-            }
-            else {
-                res.write('\nInvalid page number.');
-                res.end();
-            }
-
-        });
-    });*/
+                else {
+                    res.write('\nInvalid page number.');
+                    res.end();
+                }
+        })
+        .on('error', err => error(res,err));
+    });
 });
 
 server = http.createServer(function (req, res) {
