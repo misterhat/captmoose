@@ -129,6 +129,7 @@ router.addRoute('/moose/:name', function (req, res, params) {
                             .on('end', () => { res.end('{"success":"created new moose"}'); connection.release(); })
                             .on('error', err => error(res, err));
                     })
+                    .on('end', () => connection.release())
                     .on('error', err => error(res, err));
             });
         });
